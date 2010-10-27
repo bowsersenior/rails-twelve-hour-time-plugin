@@ -1,29 +1,33 @@
-class ActiveRecord::Base
-  def instantiate_time_object_with_ampm(name, values)
-    if values.last < 0
-      hour_idx = ActionView::Helpers::DateTimeSelector::POSITION[:hour] - 1
-      ampm = values.pop
-      if ampm == ActionView::Helpers::DateTimeSelector::AM and values[hour_idx] == 12
-        values[hour_idx] = 0
-      elsif ampm == ActionView::Helpers::DateTimeSelector::PM and values[hour_idx] != 12
-        values[hour_idx] += 12
+if const_defined?(:ActiveRecord)
+  class ActiveRecord::Base
+    def instantiate_time_object_with_ampm(name, values)
+      if values.last < 0
+        hour_idx = ActionView::Helpers::DateTimeSelector::POSITION[:hour] - 1
+        ampm = values.pop
+        if ampm == ActionView::Helpers::DateTimeSelector::AM and values[hour_idx] == 12
+          values[hour_idx] = 0
+        elsif ampm == ActionView::Helpers::DateTimeSelector::PM and values[hour_idx] != 12
+          values[hour_idx] += 12
+        end
       end
+
+      instantiate_time_object_without_ampm(name, values)
     end
 
-    instantiate_time_object_without_ampm(name, values)
+    alias_method_chain :instantiate_time_object, :ampm
   end
-
-  alias_method_chain :instantiate_time_object, :ampm
 end
 
 module ActionView::Helpers
+  module DateHelper
+    def select_ampm(datetime, options = {}, html_options = {})      
+      DateTimeSelector.new(datetime, options, html_options).select_ampm
+    end    
+  end
+  
   class DateTimeSelector
-    POSITION = {
-      :year => 1, :month => 2, :day => 3, :hour => 4, :minute => 5,
-      :second => 6, :ampm => 7
-    }
-    # XXX would like to do this, but it's frozen
-    # POSITION[:ampm] = 7
+    # POSITION is frozen, so use `remove_const` to add :ampm key and prevent warning messages about redefining a constant
+    POSITION = remove_const(:POSITION).merge(:ampm => 7)
 
     # We give them negative values so can differentiate between normal
     # date/time values. The way the multi param stuff works, from what I
@@ -33,7 +37,7 @@ module ActionView::Helpers
     AM = -1
     PM = -2
  
-    def select_hour_with_ampm
+    def select_hour_with_ampm      
       unless @options[:twelve_hour]
         return select_hour_without_ampm
       end
@@ -58,6 +62,7 @@ module ActionView::Helpers
         option[:selected] = "selected" if selected == meridiem
         ampm_options << content_tag(:option, label[meridiem], option) + "\n"
       end
+      
       build_select(:ampm, ampm_options.join)
     end
 
