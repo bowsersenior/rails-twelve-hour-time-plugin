@@ -1,4 +1,4 @@
-if const_defined?(:ActiveRecord)
+if Object.const_defined?(:ActiveRecord)
   class ActiveRecord::Base
     def instantiate_time_object_with_ampm(name, values)
       if values.last < 0
