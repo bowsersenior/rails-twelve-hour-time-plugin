@@ -1,3 +1,9 @@
+WARNING - NOT COMPATIBLE WITH RAILS 3.1+:
+
+  Do not use this with Rails 3.1+ ! Instead use the built-in :ampm option:
+  * http://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html
+  * https://github.com/rails/rails/pull/343
+
 12-HOUR TIME PLUGIN
 
   Not all of us are adept at those exotic, 24-hour clocks. So for the rest of
